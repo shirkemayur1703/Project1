@@ -488,3 +488,51 @@ function View() {
 
 export default View;
 
+
+
+modules:
+  jira:dashboardGadget:
+    - key: equbebi-dashboard-gadget
+      title: eQube-BI Dashboard
+      description: eQube-BI Dashboard gadget.
+      thumbnail: https://www.1eq.com/html/version10/eQCommunity/icons/eQube_BI_black.svg
+      resource: main-app
+      resolver:
+        function: resolver
+      edit:
+        resource: main-app
+      refreshable: false
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: modal
+    path: static/modal-app/build
+    tunnel:
+      port: 3001
+  - key: main-app
+    path: static/main-app/build
+    tunnel:
+      port: 3000
+permissions:
+  content:
+    styles:
+      - unsafe-inline
+    scripts:
+      - 'unsafe-inline'
+  scopes:
+    - read:jira-work
+    - storage:app
+  external:
+    frames:
+      - '*'
+    fetch:
+      client:
+        - '*'  
+    
+app:
+  runtime:
+    name: nodejs22.x
+  id: ari:cloud:ecosystem::app/8c3bbde2-f0d3-4ecb-b8ff-2b60a0e1b8a3
+
+
