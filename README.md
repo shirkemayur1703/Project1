@@ -1,437 +1,115 @@
-// ===== CORE MODULE =====
 
-// ===== INTERFACES =====
+import React, { useState } from "react";
+import { X, Minus, MessageCircle } from "lucide-react";
+
+const ChatbotPanel = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [messages, setMessages] = useState([
+    { sender: "bot", text: "Hi there! How can I help you today?" },
+  ]);
+  const [input, setInput] = useState("");
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    const userMsg = { sender: "user", text: input.trim() };
+    const botMsg = {
+      sender: "bot",
+      text: "This is a sample response. (Replace with backend call)",
+    };
+    setMessages((prev) => [...prev, userMsg, botMsg]);
+    setInput("");
+  };
+
+  if (!isOpen) {
+    return (
+      <button
+        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-all"
+        onClick={() => setIsOpen(true)}
+      >
+        <MessageCircle size={24} />
+      </button>
+    );
+  }
+
+  return (
+    <div className="fixed bottom-6 right-6 w-80 sm:w-96 bg-white shadow-2xl border border-gray-200 rounded-2xl flex flex-col overflow-hidden transition-all">
+      {/* Header */}
+      <div className="flex justify-between items-center bg-blue-600 text-white px-4 py-2">
+        <h2 className="font-semibold">Chatbot Assistant</h2>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="hover:text-gray-200 transition"
+            title={isCollapsed ? "Expand" : "Minimize"}
+          >
+            <Minus size={18} />
+          </button>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="hover:text-gray-200 transition"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Collapsible Content */}
+      {!isCollapsed && (
+        <>
+          {/* Messages */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${
+                  msg.sender === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`px-3 py-2 rounded-xl max-w-[80%] text-sm ${
+                    msg.sender === "user"
+                      ? "bg-blue-600 text-white rounded-br-none"
+                      : "bg-gray-200 text-gray-800 rounded-bl-none"
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Input */}
+          <div className="flex items-center p-2 border-t bg-white">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              placeholder="Type a message..."
+              className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+            <button
+              onClick={handleSend}
+              className="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition"
+            >
+              Send
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
-// UserServiceInterface.java
-package com.digitalwallet.core.service.interfaces;
+export default ChatbotPanel;
 
-import com.digitalwallet.core.model.User;
-import com.digitalwallet.core.model.UserProfile;
-import com.digitalwallet.core.exception.*;
 
-import java.util.Optional;
 
-public interface UserServiceInterface {
-    User registerUser(String email, String password, String firstName, String lastName, 
-                     String phoneNumber, String address) throws UserAlreadyExistsException, InvalidEmailException;
-    Optional<User> loginUser(String email, String password) throws InvalidEmailException;
-    Optional<User> findUserByEmail(String email);
-    Optional<User> findUserById(String userId);
-    Optional<UserProfile> getUserProfile(String userId);
-}
 
-// WalletServiceInterface.java
-package com.digitalwallet.core.service.interfaces;
 
-import com.digitalwallet.core.model.Wallet;
-import com.digitalwallet.core.model.Transaction;
-import com.digitalwallet.core.exception.WalletException;
-
-import java.math.BigDecimal;
-import java.util.Optional;
-
-public interface WalletServiceInterface {
-    Wallet createWallet(String userId, String pin) throws WalletException;
-    Wallet addMoney(String userId, BigDecimal amount, Transaction.PaymentMethod paymentMethod, String pin) throws WalletException;
-    void sendMoney(String fromUserId, String toUserId, BigDecimal amount, String pin, String description) throws WalletException;
-    Optional<Wallet> getWallet(String userId);
-    boolean changePin(String userId, String oldPin, String newPin) throws WalletException;
-}
-
-// PaymentMethodInterface.java
-package com.digitalwallet.core.model
-
-// User.java - Immutable User class
-package com.digitalwallet.core.model;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
-
-public final class User {
-    private final String userId;
-    private final String email;
-    private final String passwordHash;
-    private final LocalDateTime createdAt;
-    private final boolean isActive;
-
-    public User(String userId, String email, String passwordHash, LocalDateTime createdAt, boolean isActive) {
-        this.userId = Objects.requireNonNull(userId, "User ID cannot be null");
-        this.email = Objects.requireNonNull(email, "Email cannot be null");
-        this.passwordHash = Objects.requireNonNull(passwordHash, "Password hash cannot be null");
-        this.createdAt = Objects.requireNonNull(createdAt, "Created date cannot be null");
-        this.isActive = isActive;
-    }
-
-    public String getUserId() { return userId; }
-    public String getEmail() { return email; }
-    public String getPasswordHash() { return passwordHash; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public boolean isActive() { return isActive; }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        User user = (User) obj;
-        return Objects.equals(userId, user.userId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userId);
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "userId='" + userId + '\'' +
-                ", email='" + email + '\'' +
-                ", createdAt=" + createdAt +
-                ", isActive=" + isActive +
-                '}';
-    }
-}
-
-// UserProfile.java - Immutable UserProfile class
-package com.digitalwallet.core.model;
-
-import java.util.Objects;
-
-public final class UserProfile {
-    private final String userId;
-    private final String firstName;
-    private final String lastName;
-    private final String phoneNumber;
-    private final String address;
-
-    public UserProfile(String userId, String firstName, String lastName, String phoneNumber, String address) {
-        this.userId = Objects.requireNonNull(userId, "User ID cannot be null");
-        this.firstName = Objects.requireNonNull(firstName, "First name cannot be null");
-        this.lastName = Objects.requireNonNull(lastName, "Last name cannot be null");
-        this.phoneNumber = phoneNumber;
-        this.address = address;
-    }
-
-    public String getUserId() { return userId; }
-    public String getFirstName() { return firstName; }
-    public String getLastName() { return lastName; }
-    public String getPhoneNumber() { return phoneNumber; }
-    public String getAddress() { return address; }
-    public String getFullName() { return firstName + " " + lastName; }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        UserProfile profile = (UserProfile) obj;
-        return Objects.equals(userId, profile.userId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userId);
-    }
-
-    @Override
-    public String toString() {
-        return "UserProfile{" +
-                "userId='" + userId + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                '}';
-    }
-}
-
-// Wallet.java - Immutable Wallet class
-package com.digitalwallet.core.model;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Objects;
-
-public final class Wallet {
-    private final String walletId;
-    private final String userId;
-    private final BigDecimal balance;
-    private final String pinHash;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime lastUpdated;
-    private final boolean isActive;
-
-    public Wallet(String walletId, String userId, BigDecimal balance, String pinHash, 
-                  LocalDateTime createdAt, LocalDateTime lastUpdated, boolean isActive) {
-        this.walletId = Objects.requireNonNull(walletId, "Wallet ID cannot be null");
-        this.userId = Objects.requireNonNull(userId, "User ID cannot be null");
-        this.balance = Objects.requireNonNull(balance, "Balance cannot be null");
-        this.pinHash = Objects.requireNonNull(pinHash, "PIN hash cannot be null");
-        this.createdAt = Objects.requireNonNull(createdAt, "Created date cannot be null");
-        this.lastUpdated = Objects.requireNonNull(lastUpdated, "Last updated date cannot be null");
-        this.isActive = isActive;
-        
-        if (balance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Balance cannot be negative");
-        }
-    }
-
-    public String getWalletId() { return walletId; }
-    public String getUserId() { return userId; }
-    public BigDecimal getBalance() { return balance; }
-    public String getPinHash() { return pinHash; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getLastUpdated() { return lastUpdated; }
-    public boolean isActive() { return isActive; }
-
-    public Wallet withBalance(BigDecimal newBalance) {
-        return new Wallet(walletId, userId, newBalance, pinHash, createdAt, 
-                         LocalDateTime.now(), isActive);
-    }
-
-    public Wallet withPinHash(String newPinHash) {
-        return new Wallet(walletId, userId, balance, newPinHash, createdAt, 
-                         LocalDateTime.now(), isActive);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Wallet wallet = (Wallet) obj;
-        return Objects.equals(walletId, wallet.walletId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(walletId);
-    }
-
-    @Override
-    public String toString() {
-        return "Wallet{" +
-                "walletId='" + walletId + '\'' +
-                ", userId='" + userId + '\'' +
-                ", balance=" + balance +
-                ", createdAt=" + createdAt +
-                ", lastUpdated=" + lastUpdated +
-                ", isActive=" + isActive +
-                '}';
-    }
-}
-
-// Transaction.java - Immutable Transaction class
-package com.digitalwallet.core.model;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Objects;
-
-public final class Transaction {
-    public enum Type {
-        ADD_MONEY, SEND_MONEY, RECEIVE_MONEY, REQUEST_MONEY, MONEY_REQUEST_FULFILLED
-    }
-
-    public enum Status {
-        PENDING, COMPLETED, FAILED, CANCELLED
-    }
-
-    public enum PaymentMethod {
-        UPI, CREDIT_CARD, DEBIT_CARD, WALLET_TRANSFER
-    }
-
-    private final String transactionId;
-    private final String fromUserId;
-    private final String toUserId;
-    private final BigDecimal amount;
-    private final Type type;
-    private final Status status;
-    private final PaymentMethod paymentMethod;
-    private final String description;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime completedAt;
-    private final String failureReason;
-
-    public Transaction(String transactionId, String fromUserId, String toUserId, 
-                      BigDecimal amount, Type type, Status status, PaymentMethod paymentMethod,
-                      String description, LocalDateTime createdAt, LocalDateTime completedAt, 
-                      String failureReason) {
-        this.transactionId = Objects.requireNonNull(transactionId, "Transaction ID cannot be null");
-        this.fromUserId = fromUserId;
-        this.toUserId = toUserId;
-        this.amount = Objects.requireNonNull(amount, "Amount cannot be null");
-        this.type = Objects.requireNonNull(type, "Type cannot be null");
-        this.status = Objects.requireNonNull(status, "Status cannot be null");
-        this.paymentMethod = paymentMethod;
-        this.description = description;
-        this.createdAt = Objects.requireNonNull(createdAt, "Created date cannot be null");
-        this.completedAt = completedAt;
-        this.failureReason = failureReason;
-        
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
-        }
-    }
-
-    public String getTransactionId() { return transactionId; }
-    public String getFromUserId() { return fromUserId; }
-    public String getToUserId() { return toUserId; }
-    public BigDecimal getAmount() { return amount; }
-    public Type getType() { return type; }
-    public Status getStatus() { return status; }
-    public PaymentMethod getPaymentMethod() { return paymentMethod; }
-    public String getDescription() { return description; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getCompletedAt() { return completedAt; }
-    public String getFailureReason() { return failureReason; }
-
-    public Transaction withStatus(Status newStatus) {
-        return new Transaction(transactionId, fromUserId, toUserId, amount, type, newStatus,
-                             paymentMethod, description, createdAt, 
-                             newStatus == Status.COMPLETED ? LocalDateTime.now() : completedAt, 
-                             failureReason);
-    }
-
-    public Transaction withFailure(String reason) {
-        return new Transaction(transactionId, fromUserId, toUserId, amount, type, Status.FAILED,
-                             paymentMethod, description, createdAt, completedAt, reason);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Transaction transaction = (Transaction) obj;
-        return Objects.equals(transactionId, transaction.transactionId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(transactionId);
-    }
-
-    @Override
-    public String toString() {
-        return "Transaction{" +
-                "transactionId='" + transactionId + '\'' +
-                ", fromUserId='" + fromUserId + '\'' +
-                ", toUserId='" + toUserId + '\'' +
-                ", amount=" + amount +
-                ", type=" + type +
-                ", status=" + status +
-                ", paymentMethod=" + paymentMethod +
-                ", createdAt=" + createdAt +
-                '}';
-    }
-}
-
-// MoneyRequest.java - Immutable MoneyRequest class
-package com.digitalwallet.core.model;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Objects;
-
-public final class MoneyRequest {
-    public enum Status {
-        PENDING, FULFILLED, REJECTED, EXPIRED
-    }
-
-    private final String requestId;
-    private final String fromUserId; // User requesting money
-    private final String toUserId;   // User who should send money
-    private final BigDecimal amount;
-    private final String message;
-    private final Status status;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime respondedAt;
-    private final LocalDateTime expiresAt;
-
-    public MoneyRequest(String requestId, String fromUserId, String toUserId, 
-                       BigDecimal amount, String message, Status status,
-                       LocalDateTime createdAt, LocalDateTime respondedAt, 
-                       LocalDateTime expiresAt) {
-        this.requestId = Objects.requireNonNull(requestId, "Request ID cannot be null");
-        this.fromUserId = Objects.requireNonNull(fromUserId, "From user ID cannot be null");
-        this.toUserId = Objects.requireNonNull(toUserId, "To user ID cannot be null");
-        this.amount = Objects.requireNonNull(amount, "Amount cannot be null");
-        this.message = message;
-        this.status = Objects.requireNonNull(status, "Status cannot be null");
-        this.createdAt = Objects.requireNonNull(createdAt, "Created date cannot be null");
-        this.respondedAt = respondedAt;
-        this.expiresAt = expiresAt;
-        
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
-        }
-    }
-
-    public String getRequestId() { return requestId; }
-    public String getFromUserId() { return fromUserId; }
-    public String getToUserId() { return toUserId; }
-    public BigDecimal getAmount() { return amount; }
-    public String getMessage() { return message; }
-    public Status getStatus() { return status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getRespondedAt() { return respondedAt; }
-    public LocalDateTime getExpiresAt() { return expiresAt; }
-
-    public MoneyRequest withStatus(Status newStatus) {
-        return new MoneyRequest(requestId, fromUserId, toUserId, amount, message, newStatus,
-                               createdAt, LocalDateTime.now(), expiresAt);
-    }
-
-    public boolean isExpired() {
-        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        MoneyRequest request = (MoneyRequest) obj;
-        return Objects.equals(requestId, request.requestId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(requestId);
-    }
-
-    @Override
-    public String toString() {
-        return "MoneyRequest{" +
-                "requestId='" + requestId + '\'' +
-                ", fromUserId='" + fromUserId + '\'' +
-                ", toUserId='" + toUserId + '\'' +
-                ", amount=" + amount +
-                ", status=" + status +
-                ", createdAt=" + createdAt +
-                '}';
-    }
-}
-
-// ===== EXCEPTION CLASSES =====
-
-// WalletException.java - Base exception class
-package com.digitalwallet.core.exception;
-
-public class WalletException extends Exception {
-    public WalletException(String message) {
-        super(message);
-    }
-
-    public WalletException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
-
-// UserNotFoundException.java
-package com.digitalwallet.core.exception;
-
-public class UserNotFoundException extends WalletException {
-    public UserNotFoundException(String message) {
-        super(message);
-    }
-}
+                             
+    
 
 // UserAlreadyExistsException.java
 package com.digitalwallet.core.exception;
