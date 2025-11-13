@@ -1,4 +1,32 @@
+@echo off
+:: ----------------------------
+:: Step 1. Build React app
+:: ----------------------------
+echo Building React app...
+call build.bat
+if %errorlevel% neq 0 (
+    echo Build failed. Stopping deployment.
+    pause
+    exit /b %errorlevel%
+)
 
+:: ----------------------------
+:: Step 2. Clean old Tomcat React build
+:: ----------------------------
+echo Cleaning old React build from Tomcat...
+rmdir /s /q "C:\apache-tomcat-9.0.87\webapps\MyApp\Common\React\build"
+
+:: ----------------------------
+:: Step 3. Copy new React build to Tomcat
+:: ----------------------------
+echo Copying new React build to Tomcat...
+xcopy /E /I /Y "C:\Projects\MyReactApp\build" "C:\apache-tomcat-9.0.87\webapps\MyApp\Common\React\build"
+
+:: ----------------------------
+:: Step 4. Done
+:: ----------------------------
+echo ✅ Deployment complete!
+pause
 import React, { useState } from "react";
 import { X, Minus, MessageCircle } from "lucide-react";
 
