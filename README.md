@@ -1,31 +1,35 @@
 @echo off
-:: ----------------------------
-:: Step 1. Build React app
-:: ----------------------------
-echo Building React app...
+echo ==========================================
+echo Building and deploying React app to Tomcat
+echo ==========================================
+
+:: Step 1: Go to React project directory
+cd /d D:\Workspace\MyReactApp
+
+:: Step 2: Run the build script
+echo.
+echo --- Running build.bat ---
 call build.bat
-if %errorlevel% neq 0 (
-    echo Build failed. Stopping deployment.
+if errorlevel 1 (
+    echo Build failed. Exiting.
     pause
-    exit /b %errorlevel%
+    exit /b 1
 )
 
-:: ----------------------------
-:: Step 2. Clean old Tomcat React build
-:: ----------------------------
-echo Cleaning old React build from Tomcat...
-rmdir /s /q "C:\apache-tomcat-9.0.87\webapps\MyApp\Common\React\build"
+:: Step 3: Clear old build files from Tomcat
+echo.
+echo --- Removing old build files from Tomcat ---
+rmdir /s /q "D:\Tomcat\webapps\Common\React\build"
+mkdir "D:\Tomcat\webapps\Common\React\build"
 
-:: ----------------------------
-:: Step 3. Copy new React build to Tomcat
-:: ----------------------------
-echo Copying new React build to Tomcat...
-xcopy /E /I /Y "C:\Projects\MyReactApp\build" "C:\apache-tomcat-9.0.87\webapps\MyApp\Common\React\build"
+:: Step 4: Copy new build files to Tomcat
+echo.
+echo --- Copying new build files ---
+xcopy /E /I /Y "D:\Workspace\MyReactApp\build" "D:\Tomcat\webapps\Common\React\build"
 
-:: ----------------------------
-:: Step 4. Done
-:: ----------------------------
-echo ✅ Deployment complete!
+:: Step 5: Done
+echo.
+echo ✅ React app deployed successfully to Tomcat!
 pause
 import React, { useState } from "react";
 import { X, Minus, MessageCircle } from "lucide-react";
