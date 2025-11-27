@@ -1,0 +1,144 @@
+import React, { useState, useEffect } from "react";
+import { BsCheckCircleFill } from "react-icons/bs";
+import { AiFillDatabase } from "react-icons/ai";
+
+const MyVarPopup = ({ open, onClose, onConfirm }) => {
+  const myVarList = [
+    { id: 1, name: "MyVar A", status: "active" },
+    { id: 2, name: "MyVar B", status: "active" },
+    { id: 3, name: "MyVar C", status: "active" },
+  ];
+
+  const [selected, setSelected] = useState([]);
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelected(myVarList.map((item) => item.id));
+    } else {
+      setSelected([]);
+    }
+  };
+
+  const handleSelectRow = (id) => {
+    if (selected.includes(id)) {
+      setSelected(selected.filter((x) => x !== id));
+    } else {
+      setSelected([...selected, id]);
+    }
+  };
+
+  useEffect(() => {
+    if (!open) setSelected([]);
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-[450px] p-6">
+        <h3 className="text-lg font-semibold mb-4">Select MyVars</h3>
+
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b">
+              <th className="p-2">
+                <input
+                  type="checkbox"
+                  checked={selected.length === myVarList.length}
+                  onChange={handleSelectAll}
+                />
+              </th>
+              <th className="p-2 text-left">ID</th>
+              <th className="p-2 text-left">MyVar Name</th>
+              <th className="p-2 text-left">Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {myVarList.map((item) => (
+              <tr key={item.id} className="border-b">
+                <td className="p-2">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(item.id)}
+                    onChange={() => handleSelectRow(item.id)}
+                  />
+                </td>
+
+                <td className="p-2">{item.id}</td>
+
+                <td className="p-2 flex items-center gap-2">
+                  <AiFillDatabase size={18} />
+                  {item.name}
+                </td>
+
+                <td className="p-2">
+                  <BsCheckCircleFill size={18} className="text-green-600" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="flex justify-end gap-3 mt-5">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-md bg-gray-300 hover:bg-gray-400 transition"
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={() => onConfirm(selected)}
+            className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MyVarPopup;
+
+
+import React, { useState } from "react";
+import MyVarPopup from "./MyVarPopup";
+import { FiLink } from "react-icons/fi";
+
+const ChatUI = () => {
+  const [popupOpen, setPopupOpen] = useState(false);
+
+  const handleConfirm = (selectedIds) => {
+    console.log("Selected MyVars:", selectedIds);
+    setPopupOpen(false);
+  };
+
+  return (
+    <div className="w-full h-screen flex items-center justify-center">
+      <div className="flex items-center bg-white border rounded-full shadow px-5 py-3 w-1/2">
+        <input
+          type="text"
+          placeholder="Type your message..."
+          className="flex-1 outline-none text-lg"
+        />
+
+        <button
+          className="ml-3 text-2xl text-blue-600 hover:text-blue-800"
+          onClick={() => setPopupOpen(true)}
+        >
+          <FiLink />
+        </button>
+      </div>
+
+      <MyVarPopup
+        open={popupOpen}
+        onClose={() => setPopupOpen(false)}
+        onConfirm={handleConfirm}
+      />
+    </div>
+  );
+};
+
+export default ChatUI;
